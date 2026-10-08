@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import packageJson from '../../package.json';
 import QRCode from 'qrcode';
 import fonts from './font-data.json';
 import { WalletError, type WalletModel } from '../bitcoin/engine';
@@ -30,7 +31,7 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
   const metadata=doc.getFont().metadata as {cmap?:{unicode?:{codeMap?:Record<number,number>}}};
   const glyphs=metadata.cmap?.unicode?.codeMap;
   for(const character of name+description) if(character!=='\n'&&character!=='\r'&&glyphs&&!glyphs[character.codePointAt(0)!])throw new WalletError('font');
-  doc.setProperties({title:'Uncle Jim public address sheet',subject:'Public wallet information',author:'ClavaStack',creator:'ClavaStack Uncle Jim Generator 1.1.0'});
+  doc.setProperties({title:'Uncle Jim public address sheet',subject:'Public wallet information',author:'ClavaStack',creator:`ClavaStack Uncle Jim Generator ${packageJson.version}`});
   const text=(s:string,x:number,y:number,size=9,bold=false)=>{doc.setFont('Noto',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(20,28,37);doc.text(s,x,y);};
   const centeredText=(s:string,x:number,y:number,size=9,bold=false)=>{doc.setFont('Noto',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(20,28,37);doc.text(s,x,y,{align:'center'});};
   const brand=(s:string,x:number,y:number)=>{

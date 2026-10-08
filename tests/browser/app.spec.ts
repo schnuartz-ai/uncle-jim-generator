@@ -5,6 +5,9 @@ test('loads isolated, downloads PDF offline, refreshes and switches languages wi
   const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
   await page.goto('/uncle-jim-generator/');
   await expect(page.getByText('Ready for offline use',{exact:true})).toBeVisible({timeout:30000});
+  await expect(page.getByRole('link',{name:'ClavaStack Security'})).toBeVisible();
+  await expect(page.getByText('SECURITY',{exact:true})).toBeVisible();
+  await expect(page.locator('.subtitle')).toContainText('watch-only address sheet');
   expect(requests.every(url=>url.startsWith('http://127.0.0.1:4173/uncle-jim-generator/')||url.startsWith('http://127.0.0.1:4173/de/uncle-jim-generator'))).toBe(true);
   await page.screenshot({path:'output/ui-desktop-en.png',fullPage:true});
   await context.setOffline(true);
@@ -19,6 +22,8 @@ test('loads isolated, downloads PDF offline, refreshes and switches languages wi
   await page.getByRole('button',{name:'DE',exact:true}).click();await expect(page.getByRole('heading',{name:'Uncle Jim PDF-Generator',exact:true})).toBeVisible();
   const german=page.waitForEvent('download');await page.getByRole('button',{name:'Uncle Jim PDF erstellen'}).click();await (await german).saveAs('output/pdf/browser-offline-de.pdf');
   await page.goto('/de/uncle-jim-generator');await expect(page.getByRole('heading',{name:'Uncle Jim PDF-Generator',exact:true})).toBeVisible();
+  await expect(page.getByRole('link',{name:'ClavaStack Security'})).toBeVisible();
+  await expect(page.locator('.subtitle')).toContainText('Watch-Only-Wallet');
   await expect(page.locator('#wallet-input')).toHaveValue('');
   const storage=await page.evaluate(()=>({local:localStorage.length,session:sessionStorage.length}));expect(storage).toEqual({local:0,session:0});expect(errors).toEqual([]);
 });

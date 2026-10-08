@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 — 2026-10-08
+
+- Added the ClavaStack Security identity to the generator header and clarified its watch-only PDF output in English and German.
+- Keep offline cache and PDF creator metadata aligned with the package version.
+
 ## 1.1.0 — 2026-10-08
 
 - Redesigned the printable sheet with a short brand underline, a large checksummed receive-descriptor QR labelled Watch-Only, and a compact three-column/eight-row address grid.

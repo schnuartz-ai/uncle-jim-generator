@@ -1,8 +1,8 @@
 import type { ErrorCode } from '../bitcoin/engine';
 export type Language='en'|'de';
 const en={
-  tools:'Get to other tools',consultation:'Free consultation',info:'About Uncle Jim',title:'Uncle Jim PDF Generator',brand:'ClavaStack Uncle Jim Generator',
-  subtitle:'Create a printable Bitcoin address sheet for your hardware wallet — privately, directly in your browser.',
+  tools:'Get to other tools',consultation:'Free consultation',info:'About Uncle Jim',title:'Uncle Jim PDF Generator',brand:'ClavaStack Security',
+  subtitle:'Turn a public XPub or wallet descriptor into a printable Bitcoin watch-only address sheet, with receiving-address QR codes and a descriptor QR for compatible wallet imports. Processing happens locally in your browser.',
   badge:'PUBLIC KEYS ONLY · LOCAL BY DESIGN',privacyTitle:'Your wallet stays on your device.',privacy:'No accounts, no uploads. Public wallet information is processed in your browser and is never saved by this application.',
   offlineTitle:'Want to use the generator offline?',offline:'Wait for offline readiness, then disconnect your internet manually. Both languages, address derivation and PDF generation remain available. The browser cannot prove that your device is isolated.',ready:'Ready for offline use',loading:'Preparing offline files…',offlineError:'Offline refresh is not ready. Keep this page open; the loaded generator works without a connection. Reload online to prepare offline refresh.',
   key:'XPub / wallet descriptor',placeholder:'Paste XPub or wallet descriptor',publicOnly:'Use public keys only. Never enter a seed phrase, private key or secret wallet export.',
@@ -28,8 +28,8 @@ const en={
   nameRequired:'Enter a wallet name (maximum 80 characters).',descLimit:'The description may contain at most 1000 characters.',clear:'Clear wallet data',errorHeading:'Check your input',rangeLabel:'Address range',keyLabel:'Public key',
 };
 const de:typeof en={
-  tools:'Zu den anderen Tools',consultation:'Kostenlose Beratung',info:'Über Uncle Jim',title:'Uncle Jim PDF-Generator',brand:'ClavaStack Uncle Jim Generator',
-  subtitle:'Erstelle ein druckbares Bitcoin-Adressenblatt für deine Hardware-Wallet – privat und direkt in deinem Browser.',
+  tools:'Zu den anderen Tools',consultation:'Kostenlose Beratung',info:'Über Uncle Jim',title:'Uncle Jim PDF-Generator',brand:'ClavaStack Security',
+  subtitle:'Erstelle aus einem öffentlichen XPub oder Wallet-Descriptor ein druckbares Bitcoin-Adressenblatt für eine Watch-Only-Wallet. Das PDF enthält Empfangsadressen und einen Descriptor-QR für den Import in kompatible Wallets. Die Verarbeitung erfolgt lokal im Browser.',
   badge:'NUR ÖFFENTLICHE SCHLÜSSEL · LOKAL VERARBEITET',privacyTitle:'Deine Wallet bleibt auf deinem Gerät.',privacy:'Kein Konto, kein Upload. Öffentliche Wallet-Daten werden im Browser verarbeitet und von dieser Anwendung niemals gespeichert.',
   offlineTitle:'Möchtest du den Generator offline verwenden?',offline:'Warte auf die Offline-Bereitschaft und trenne deine Internetverbindung manuell. Beide Sprachen, Adressableitung und PDF-Erstellung bleiben verfügbar. Der Browser kann die Netzwerktrennung deines Geräts nicht nachweisen.',ready:'Für Offline-Nutzung bereit',loading:'Offline-Dateien werden vorbereitet…',offlineError:'Offline-Neuladen ist noch nicht bereit. Lass diese Seite offen; der geladene Generator funktioniert ohne Verbindung. Lade online neu, um Offline-Neuladen vorzubereiten.',
   key:'XPub / Wallet-Descriptor',placeholder:'XPub oder Wallet-Descriptor einfügen',publicOnly:'Nur öffentliche Schlüssel verwenden. Niemals Seedphrase, private Schlüssel oder geheime Wallet-Exporte eingeben.',

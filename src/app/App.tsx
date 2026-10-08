@@ -50,7 +50,7 @@ export function App() {
   }
   function clear(){setInput('');setName('');setDescription('');setChange('');setWallet(null);setError('');setSuccess(false);}
   return <>
-    <header className="header"><a className="brand" href={`${prefix}/tools`} aria-label="ClavaStack Tools"><img src={logo} alt=""/><span>ClavaStack</span></a>
+    <header className="header"><a className="brand" href={`${prefix}/tools`} aria-label={t.brand}><img src={logo} alt=""/><span className="brand-copy"><span className="brand-name">ClavaStack</span><span className="brand-security">SECURITY</span></span></a>
       <div className="header-links"><a href={`${prefix}/tools`}>{t.tools}<span aria-hidden="true"> ↗</span></a>
         <details className="menu"><summary aria-label={t.details}>•••</summary><nav><a href={`${prefix}/security-talk`}>{t.consultation}</a><a href={`${prefix}/uncle-jim-wallet`}>{t.info}</a><a href={`${prefix}/tools`}>Tools</a></nav></details>
         <div className="language" aria-label={language==='de'?'Sprache':'Language'}><button type="button" aria-pressed={language==='en'} onClick={()=>setLanguage('en')}>EN</button><span>/</span><button type="button" aria-pressed={language==='de'} onClick={()=>setLanguage('de')}>DE</button></div>
