@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 — 2026-10-08
+
+- Redesigned the printable sheet with a short brand underline, a large checksummed receive-descriptor QR labelled Watch-Only, and a compact three-column/eight-row address grid.
+- Kept the complete original and effective descriptors as selectable text on the recovery pages; verifies the rendered descriptor QR alongside every address QR.
+
 ## 1.0.0 — 2026-10-08
 
 - Public-only XPub/descriptor import, local BIP32 derivation, single-sig and multisig, compatible WSH Miniscript/Taproot trees, SLIP-132 and test networks.

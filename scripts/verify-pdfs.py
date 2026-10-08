@@ -18,6 +18,7 @@ for file in sorted(Path('output/pdf').glob('*.pdf')):
     compact = ''.join(text.split())
     assert 'FamilyWallet' in compact, file
     assert ''.join(wallet['descriptor'].split()) in compact, file
+    assert 'Watch-Only' in compact, file
     assert 'GrüßeausKöln' in compact, file
     for address in wallet['addresses']:
         assert address['address'] in compact, (file, address)
@@ -35,6 +36,12 @@ for file in sorted(Path('output/pdf').glob('*.pdf')):
             if page_index < (len(wallet['addresses'])+23)//24:
                 rectangles = [r for r in page.rects if abs(r['width']*25.4/72-170)<.05 and abs(r['height']*25.4/72-200)<.05]
                 assert rectangles, (file, 'missing exact 170 x 200 cut outline')
+                blue_lines = [line for line in page.lines if line['stroking_color'] and len(line['stroking_color']) >= 3 and line['stroking_color'][:3] == (0.12, 0.6, 0.9) and abs(line['top']-line['bottom']) < .1]
+                logo_words = [word for word in page.extract_words() if word['text'] in {'CLAVASTACK', 'UNCLE', 'JIM', 'WALLET'} and word['top'] < 100]
+                assert len(blue_lines) == 1 and logo_words, (file, 'missing short brand underline')
+                blue = blue_lines[0]
+                assert blue['x1']-blue['x0'] < 180, (file, 'brand underline is not short')
+                assert abs(blue['x1']-max(word['x1'] for word in logo_words)) < 1, (file, 'brand underline does not end under the brand text')
                 strip = page.crop((0, 229*72/25.4, page.width, page.height)).extract_text() or ''
                 assert 'Family Wallet' not in strip and 'xpub' not in strip and 'bc1' not in strip, (file,'wallet data on discarded strip')
     for i in range(len(rendered)):
@@ -47,12 +54,16 @@ for file in sorted(Path('output/pdf').glob('*.pdf')):
         if p not in pages:
             pages[p]=rendered[p].render(scale=scale).to_pil().convert('RGBA')
         local = i%24
-        x=(25+(local%6)*26.5)*mm
-        y=(69+(local//6)*35)*mm
-        crop=pages[p].crop((round(x),round(y),round(x+20*mm),round(y+20*mm)))
+        x=(25+(local%3)*55)*mm
+        y=(85+(local//3)*17)*mm
+        crop=pages[p].crop((round(x),round(y),round(x+15.5*mm),round(y+15.5*mm)))
         raw=target/f'qr-{i}.rgba'
         raw.write_bytes(crop.tobytes())
         qrs.append({'file':str(raw),'width':crop.width,'height':crop.height,'expected':address['address']})
+    descriptor_crop=pages[0].crop((round(136*mm),round(23*mm),round((136+48)*mm),round((23+48)*mm)))
+    descriptor_raw=target/'qr-wallet-descriptor.rgba'
+    descriptor_raw.write_bytes(descriptor_crop.tobytes())
+    qrs.append({'file':str(descriptor_raw),'width':descriptor_crop.width,'height':descriptor_crop.height,'expected':wallet['descriptor']})
     # Product links are decoded from the real removable strip, not source matrices.
     image=pages[0]
     for product,x in [('debasafetueten',143),('backup-stack',169)]:

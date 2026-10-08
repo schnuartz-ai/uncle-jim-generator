@@ -4,10 +4,9 @@ import fonts from './font-data.json';
 import { WalletError, type WalletModel } from '../bitcoin/engine';
 import { messages, type Language } from '../i18n/messages';
 
-export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:20,columns:6,rows:4};
+export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:15.5,columns:3,rows:8,addressStartX:25,addressStartY:85,addressColumnGap:55,addressRowGap:17,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
 export function createQr(value:string) {return QRCode.create(value,{errorCorrectionLevel:'M'});}
-function qr(doc:jsPDF,value:string,x:number,y:number,size:number) {
-  const matrix=createQr(value).modules;
+function qr(doc:jsPDF,value:string,x:number,y:number,size:number,matrix=createQr(value).modules) {
   const unit=size/(matrix.size+8);
   doc.setFillColor(255,255,255);doc.rect(x,y,size,size,'F');doc.setFillColor(0,0,0);
   for(let row=0;row<matrix.size;row++) {
@@ -31,8 +30,14 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
   const metadata=doc.getFont().metadata as {cmap?:{unicode?:{codeMap?:Record<number,number>}}};
   const glyphs=metadata.cmap?.unicode?.codeMap;
   for(const character of name+description) if(character!=='\n'&&character!=='\r'&&glyphs&&!glyphs[character.codePointAt(0)!])throw new WalletError('font');
-  doc.setProperties({title:'Uncle Jim public address sheet',subject:'Public wallet information',author:'ClavaStack',creator:'ClavaStack Uncle Jim Generator 1.0.0'});
+  doc.setProperties({title:'Uncle Jim public address sheet',subject:'Public wallet information',author:'ClavaStack',creator:'ClavaStack Uncle Jim Generator 1.1.0'});
   const text=(s:string,x:number,y:number,size=9,bold=false)=>{doc.setFont('Noto',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(20,28,37);doc.text(s,x,y);};
+  const centeredText=(s:string,x:number,y:number,size=9,bold=false)=>{doc.setFont('Noto',bold?'bold':'normal');doc.setFontSize(size);doc.setTextColor(20,28,37);doc.text(s,x,y,{align:'center'});};
+  const brand=(s:string,x:number,y:number)=>{
+    doc.setFont('Noto','bold');doc.setFontSize(8);doc.setTextColor(20,28,37);
+    doc.text(s,x,y);const width=doc.getTextWidth(s);
+    doc.setDrawColor(31,153,229);doc.setLineWidth(.7);doc.line(x,y+3.2,x+width,y+3.2);
+  };
   const wrap=(s:string,width:number,size:number):string[]=>{doc.setFont('Noto','normal');doc.setFontSize(size);return doc.splitTextToSize(s,width);};
   const policy=wallet.scriptType.replace(/@\d+/g,'key');
   const policyShort=policy.length>110?`${policy.slice(0,100)}…`:policy;
@@ -40,24 +45,39 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
   const productBase=`https://clavastack.com${language==='de'?'/de':''}/products/`;
   const bags=productBase+'debasafetueten',stack=productBase+'backup-stack';
 
-  for(let page=0;page<Math.ceil(wallet.addresses.length/24);page++) {
+  for(let page=0;page<Math.ceil(wallet.addresses.length/(GEOMETRY.columns*GEOMETRY.rows));page++) {
     if(page)doc.addPage();
     doc.setDrawColor(110,120,130);doc.setLineWidth(.25);doc.setLineDashPattern([1.5,1.5],0);doc.rect(20,20,170,200);doc.setLineDashPattern([],0);
-    text('CLAVASTACK  /  UNCLE JIM',26,29,8,true);
-    doc.setDrawColor(31,153,229);doc.setLineWidth(.7);doc.line(26,33,184,33);
-    const nameLines=wrap(name.replace(/\s+/g,' '),158,12);nameLines.forEach((line,i)=>text(line,26,40+i*5,12,true));
-    text(network,26,54,7);text(`${t.walletType}: ${policyShort}`,26,59,6.5);
-    if(description)text(t.descriptionOnRecovery,26,64,6.5);
-    const selected=wallet.addresses.slice(page*24,(page+1)*24);
+    brand('CLAVASTACK  /  UNCLE JIM WALLET',26,29);
+    const nameLines=wrap(name.replace(/\s+/g,' '),104,12);
+    nameLines.forEach((line,i)=>text(line,26,40+i*5,12,true));
+    let headerY=40+nameLines.length*5+1;
+    text(network,26,headerY,7);headerY+=4.5;
+    const policyLines=wrap(`${t.walletType}: ${policyShort}`,104,6.2);
+    policyLines.forEach((line,i)=>text(line,26,headerY+i*3.1,6.2));headerY+=policyLines.length*3.1;
+    if(description)text(t.descriptionOnRecovery,26,headerY+2,6.2);
+    let descriptorMatrix;
+    try {
+      const candidate=createQr(wallet.descriptor).modules;
+      if(GEOMETRY.descriptorQrSize/(candidate.size+8)>=.28)descriptorMatrix=candidate;
+    } catch {descriptorMatrix=undefined;}
+    if(descriptorMatrix) {
+      qr(doc,wallet.descriptor,GEOMETRY.descriptorQrX,GEOMETRY.descriptorQrY,GEOMETRY.descriptorQrSize,descriptorMatrix);
+      centeredText(t.watchOnly,GEOMETRY.descriptorQrX+GEOMETRY.descriptorQrSize/2,74,7.5,true);
+      centeredText(t.descriptorQr,GEOMETRY.descriptorQrX+GEOMETRY.descriptorQrSize/2,78,5.1);
+    } else {
+      wrap(t.qrTooLarge,50,6).forEach((line,i)=>text(line,GEOMETRY.descriptorQrX,44+i*3.2,6));
+    }
+    text(t.verified,26,78,7,true);text(t.sheetNote,26,82,6.2);
+    const selected=wallet.addresses.slice(page*(GEOMETRY.columns*GEOMETRY.rows),(page+1)*(GEOMETRY.columns*GEOMETRY.rows));
     selected.forEach((address,i)=> {
-      const col=i%6,row=Math.floor(i/6),x=25+col*26.5,y=69+row*35;
-      qr(doc,address.address,x,y,20);
-      doc.setDrawColor(30,30,30);doc.setLineWidth(.2);doc.rect(x+21,y+1,3,3);
-      text(address.index===null?'#1':`#${address.index}`,x+20.5,y+10,6,true);
-      const chunks=address.address.match(/.{1,14}/g)!;
-      chunks.forEach((line,j)=>text(line,x,y+22.4+j*2.35,5.8));
+      const col=i%GEOMETRY.columns,row=Math.floor(i/GEOMETRY.columns);
+      const x=GEOMETRY.addressStartX+col*GEOMETRY.addressColumnGap,y=GEOMETRY.addressStartY+row*GEOMETRY.addressRowGap;
+      qr(doc,address.address,x,y,GEOMETRY.qrSize);
+      doc.setDrawColor(30,30,30);doc.setLineWidth(.2);doc.rect(x+51,y+1,3,3);
+      text(address.index===null?'#1':`#${address.index}`,x+17,y+4,5.5,true);
+      wrap(address.address,33,5.3).forEach((line,j)=>text(line,x+17,y+8+j*2.4,5.3));
     });
-    text(t.verified,26,211,7,true);text(t.sheetNote,26,216,6.5);
     text(t.print,20,14,6.5);
     doc.setDrawColor(110,120,130);doc.setLineDashPattern([1.5,1.5],0);doc.line(20,228,190,228);doc.setLineDashPattern([],0);
     text(t.stripTitle,20,236,10,true);
@@ -92,11 +112,6 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
   block(t.rangeLabel,wallet.ranged?`${wallet.addresses[0].index} - ${wallet.addresses.at(-1)!.index}`:t.fixed);
   if(wallet.assumedPath)paragraph(t.assumed);
   if(wallet.missingChecksum)paragraph(t.missing);
-  // Short descriptors receive a generously sized, documented QR. Long data remains exact text.
-  if(wallet.descriptor.length<=450) {
-    if(y+56>277){doc.addPage();y=25;}
-    qr(doc,wallet.descriptor,20,y,45);text(t.descriptorQr,70,y+10,7);y+=50;
-  } else paragraph(t.qrTooLarge);
   block(t.original,wallet.original);block(t.effective,wallet.descriptor);
   if(wallet.originalChange)block(t.changeOriginal,wallet.originalChange);
   if(wallet.changeDescriptor)block(t.changeEffective,wallet.changeDescriptor);
