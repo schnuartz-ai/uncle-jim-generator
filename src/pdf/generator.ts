@@ -5,7 +5,7 @@ import fonts from './font-data.json';
 import { WalletError, type WalletModel } from '../bitcoin/engine';
 import { messages, type Language } from '../i18n/messages';
 
-export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:15.5,columns:3,rows:8,addressStartX:25,addressStartY:85,addressColumnGap:55,addressRowGap:17,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
+export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:15.5,columns:4,rows:6,addressStartX:25,addressStartY:85,addressColumnGap:40,addressRowGap:23,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
 export function createQr(value:string) {return QRCode.create(value,{errorCorrectionLevel:'M'});}
 function qr(doc:jsPDF,value:string,x:number,y:number,size:number,matrix=createQr(value).modules) {
   const unit=size/(matrix.size+8);
@@ -75,9 +75,9 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
       const col=i%GEOMETRY.columns,row=Math.floor(i/GEOMETRY.columns);
       const x=GEOMETRY.addressStartX+col*GEOMETRY.addressColumnGap,y=GEOMETRY.addressStartY+row*GEOMETRY.addressRowGap;
       qr(doc,address.address,x,y,GEOMETRY.qrSize);
-      doc.setDrawColor(30,30,30);doc.setLineWidth(.2);doc.rect(x+51,y+1,3,3);
-      text(address.index===null?'#1':`#${address.index}`,x+17,y+4,5.5,true);
-      wrap(address.address,33,5.3).forEach((line,j)=>text(line,x+17,y+8+j*2.4,5.3));
+      doc.setDrawColor(30,30,30);doc.setLineWidth(.2);doc.rect(x+28,y+1,3,3);
+      text(address.index===null?'#1':`#${address.index}`,x+17,y+4,4.8,true);
+      wrap(address.address,21.5,4.5).forEach((line,j)=>text(line,x+17,y+7.5+j*1.9,4.5));
     });
     text(t.print,20,14,6.5);
     doc.setDrawColor(110,120,130);doc.setLineDashPattern([1.5,1.5],0);doc.line(20,228,190,228);doc.setLineDashPattern([],0);

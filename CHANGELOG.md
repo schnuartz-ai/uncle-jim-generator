@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.2 — 2026-10-08
+
+- Reflowed the 24-address sheet to four QR codes per row across six rows while keeping each address, index and verification checkbox with its QR.
+
 ## 1.1.1 — 2026-10-08
 
 - Added the ClavaStack Security identity to the generator header and clarified its watch-only PDF output in English and German.

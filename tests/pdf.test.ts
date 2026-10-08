@@ -4,7 +4,7 @@ import { buildWallet,WalletError } from '../src/bitcoin/engine';
 import { generatePdf,createQr,safeFilename,GEOMETRY } from '../src/pdf/generator';
 const XPUB='xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8';
 describe('PDF output',()=>{
-  it('fits the retained sheet in the documented bag with 10 mm tolerance',()=>{expect(GEOMETRY.width).toBe(170);expect(GEOMETRY.height).toBe(200);expect(GEOMETRY.width).toBeLessThan(180);expect(GEOMETRY.height).toBeLessThan(210);expect(GEOMETRY.x*2+GEOMETRY.width).toBe(210);expect(GEOMETRY.columns).toBe(3);expect(GEOMETRY.rows).toBe(8);expect(GEOMETRY.descriptorQrSize).toBeGreaterThan(40);});
+  it('fits a four-column, six-row address grid inside the retained sheet',()=>{expect(GEOMETRY.width).toBe(170);expect(GEOMETRY.height).toBe(200);expect(GEOMETRY.width).toBeLessThan(180);expect(GEOMETRY.height).toBeLessThan(210);expect(GEOMETRY.x*2+GEOMETRY.width).toBe(210);expect(GEOMETRY.columns).toBe(4);expect(GEOMETRY.rows).toBe(6);expect(GEOMETRY.addressStartX+(GEOMETRY.columns-1)*GEOMETRY.addressColumnGap+GEOMETRY.qrSize).toBeLessThanOrEqual(GEOMETRY.x+GEOMETRY.width);expect(GEOMETRY.addressStartY+(GEOMETRY.rows-1)*GEOMETRY.addressRowGap+GEOMETRY.qrSize).toBeLessThanOrEqual(GEOMETRY.y+GEOMETRY.height);expect(GEOMETRY.descriptorQrSize).toBeGreaterThan(40);});
   it.each(['en','de'] as const)('creates complete %s PDFs with 24 addresses and a recovery page',language=>{
     const wallet=buildWallet(XPUB);const pdf=generatePdf(wallet,'Grüße aus Köln','Öffentliche Daten',language);
     expect(pdf.getNumberOfPages()).toBe(2);expect(pdf.output('arraybuffer').byteLength).toBeGreaterThan(100000);

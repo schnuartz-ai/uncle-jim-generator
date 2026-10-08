@@ -54,8 +54,8 @@ for file in sorted(Path('output/pdf').glob('*.pdf')):
         if p not in pages:
             pages[p]=rendered[p].render(scale=scale).to_pil().convert('RGBA')
         local = i%24
-        x=(25+(local%3)*55)*mm
-        y=(85+(local//3)*17)*mm
+        x=(25+(local%4)*40)*mm
+        y=(85+(local//4)*23)*mm
         crop=pages[p].crop((round(x),round(y),round(x+15.5*mm),round(y+15.5*mm)))
         raw=target/f'qr-{i}.rgba'
         raw.write_bytes(crop.tobytes())
