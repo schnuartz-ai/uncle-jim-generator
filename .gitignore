@@ -1,0 +1,12 @@
+node_modules/
+dist/
+research/
+output/
+tmp/
+test-results/
+playwright-report/
+.serena/
+integration-handoff.md
+generator-ready.json
+*.log
+src/pdf/font-data.json

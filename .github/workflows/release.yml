@@ -1,0 +1,21 @@
+name: Release offline application
+on:
+  push:
+    tags: ['v*.*.*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint && npm run typecheck && npm test && npm run build
+      - run: zip -r uncle-jim-generator-${{ github.ref_name }}.zip dist LICENSE README.md SECURITY.md THIRD_PARTY_NOTICES.md
+      - run: gh release create "${{ github.ref_name }}" "uncle-jim-generator-${{ github.ref_name }}.zip" --title "Uncle Jim Generator ${{ github.ref_name }}" --notes-file CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}

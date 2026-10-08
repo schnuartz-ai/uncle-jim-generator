@@ -1,0 +1,40 @@
+import { test,expect } from '@playwright/test';
+const XPUB='xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8';
+test('loads isolated, downloads PDF offline, refreshes and switches languages without leaks',async({page,context})=>{
+  const requests:string[]=[];page.on('request',request=>requests.push(request.url()));
+  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
+  await page.goto('/uncle-jim-generator/');
+  await expect(page.getByText('Ready for offline use',{exact:true})).toBeVisible({timeout:30000});
+  expect(requests.every(url=>url.startsWith('http://127.0.0.1:4173/uncle-jim-generator/')||url.startsWith('http://127.0.0.1:4173/de/uncle-jim-generator'))).toBe(true);
+  await page.screenshot({path:'output/ui-desktop-en.png',fullPage:true});
+  await context.setOffline(true);
+  await page.reload();await expect(page.getByRole('heading',{name:'Uncle Jim PDF Generator',exact:true})).toBeVisible();
+  await page.locator('#wallet-input').fill(XPUB);await page.locator('#wallet-name').fill('Private Family Wallet');
+  const download=page.waitForEvent('download');await page.getByRole('button',{name:'Generate Uncle Jim PDF'}).click();
+  const file=await download;expect(file.suggestedFilename()).toBe('uncle-jim-Private-Family-Wallet.pdf');
+  await file.saveAs('output/pdf/browser-offline.pdf');
+  await expect(page.getByText('PDF created locally.',{exact:false})).toBeVisible();
+  await expect(page.locator('.address-list code').first()).toHaveText(/^bc1q/);
+  expect(requests.join('|')).not.toContain(XPUB);expect(requests.join('|')).not.toContain('Private Family Wallet');
+  await page.getByRole('button',{name:'DE',exact:true}).click();await expect(page.getByRole('heading',{name:'Uncle Jim PDF-Generator',exact:true})).toBeVisible();
+  const german=page.waitForEvent('download');await page.getByRole('button',{name:'Uncle Jim PDF erstellen'}).click();await (await german).saveAs('output/pdf/browser-offline-de.pdf');
+  await page.goto('/de/uncle-jim-generator');await expect(page.getByRole('heading',{name:'Uncle Jim PDF-Generator',exact:true})).toBeVisible();
+  await expect(page.locator('#wallet-input')).toHaveValue('');
+  const storage=await page.evaluate(()=>({local:localStorage.length,session:sessionStorage.length}));expect(storage).toEqual({local:0,session:0});expect(errors).toEqual([]);
+});
+test('rejects secrets, handles ambiguous networks and renders malicious text as text',async({page})=>{
+  await page.goto('/uncle-jim-generator/');
+  await page.locator('#wallet-input').fill('abandon '.repeat(11)+'about');await expect(page.locator('#wallet-input')).toHaveValue('');await expect(page.getByRole('alert')).toContainText('Secret material');
+  await page.locator('#wallet-input').fill('wpkh(0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798)');
+  await page.getByRole('button',{name:'Preview addresses'}).click();await expect(page.getByRole('alert')).toContainText('network cannot be inferred');
+  await page.locator('#network').selectOption('mainnet');await page.locator('#wallet-name').fill('<img src=x onerror=alert(1)>');
+  await page.getByRole('button',{name:'Preview addresses'}).click();await expect(page.getByText('This descriptor specifies one fixed output.',{exact:false})).toBeVisible();
+  expect(await page.locator('img[src=x]').count()).toBe(0);
+});
+test('mobile form has no horizontal overflow and German links are localized',async({page})=>{
+  await page.setViewportSize({width:390,height:844});await page.goto('/de/uncle-jim-generator/');
+  await expect(page.getByRole('heading',{name:'Uncle Jim PDF-Generator',exact:true})).toBeVisible();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth)).toBe(true);
+  await expect(page.getByRole('link',{name:'Zu den anderen Tools'})).toHaveAttribute('href','/de/tools');
+  await page.screenshot({path:'output/ui-mobile-de.png',fullPage:true});
+});

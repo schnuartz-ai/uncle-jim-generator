@@ -1,0 +1,50 @@
+{
+  "name": "@clavastack/uncle-jim-generator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build && node scripts/build-offline.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "samples": "tsx scripts/samples.ts",
+    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run test:browser",
+    "postinstall": "node scripts/prepare-fonts.mjs",
+    "pdf:verify": "python scripts/verify-pdfs.py && tsx scripts/verify-qr.ts",
+    "prebuild": "node scripts/prepare-fonts.mjs && node scripts/prepare-notices.mjs"
+  },
+  "dependencies": {
+    "@bitcoinerlab/descriptors": "3.2.0",
+    "@fontsource/dm-sans": "5.3.0",
+    "@fontsource/sora": "5.3.0",
+    "@scure/base": "2.4.0",
+    "bitcoinjs-lib": "7.0.1",
+    "jspdf": "4.2.1",
+    "qrcode": "1.5.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.64.0",
+    "@scure/bip32": "2.4.0",
+    "@scure/btc-signer": "2.4.1",
+    "@types/node": "26.6.4",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint": "10.12.0",
+    "jsqr": "1.4.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}
