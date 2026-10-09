@@ -1,9 +1,35 @@
 import { describe,expect,it } from 'vitest';
 import jsQR from 'jsqr';
 import { buildWallet,WalletError } from '../src/bitcoin/engine';
-import { generatePdf,createQr,safeFilename,GEOMETRY } from '../src/pdf/generator';
+import { generatePdf,createQr,safeFilename,GEOMETRY,walletDisplay } from '../src/pdf/generator';
 const XPUB='xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8';
+const PUBS=['0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798','02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5','02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9'];
 describe('PDF output',()=>{
+  it('labels single-sig and standard address formats in German and English',()=>{
+    const wallet=buildWallet(XPUB);
+    expect(walletDisplay(wallet,'de')).toEqual({addressFormat:'Native SegWit (P2WPKH)',signatureType:'Single-Sig'});
+    expect(walletDisplay(wallet,'en')).toEqual({addressFormat:'Native SegWit (P2WPKH)',signatureType:'Single-Sig'});
+  });
+  it('names legacy, nested and P2WSH address formats accurately',()=>{
+    const legacy=buildWallet(XPUB,{scriptType:'pkh',count:1});
+    const nested=buildWallet(XPUB,{scriptType:'sh-wpkh',count:1});
+    const p2sh=buildWallet(`sh(sortedmulti(2,${PUBS.join(',')}))`,{network:'mainnet'});
+    const p2wsh=buildWallet(`wsh(multi(2,${PUBS.join(',')}))`,{network:'mainnet'});
+    expect(walletDisplay(legacy,'de').addressFormat).toBe('Legacy (P2PKH)');
+    expect(walletDisplay(nested,'de').addressFormat).toBe('Nested SegWit (P2SH-P2WPKH)');
+    expect(walletDisplay(p2sh,'de').addressFormat).toBe('Legacy (P2SH)');
+    expect(walletDisplay(p2wsh,'de').addressFormat).toBe('Native SegWit (P2WSH)');
+  });
+  it('shows the address script and exact threshold for nested multisig',()=>{
+    const wallet=buildWallet(`sh(wsh(sortedmulti(2,${PUBS.join(',')})))`,{network:'mainnet'});
+    expect(walletDisplay(wallet,'de')).toEqual({addressFormat:'Nested SegWit (P2SH-P2WSH)',signatureType:'Multi-Sig (2-von-3)'});
+    expect(walletDisplay(wallet,'en')).toEqual({addressFormat:'Nested SegWit (P2SH-P2WSH)',signatureType:'Multi-Sig (2-of-3)'});
+  });
+  it('identifies Taproot script-path multisig while keeping the Taproot address format',()=>{
+    const keys=PUBS.map(key=>key.slice(2));
+    const wallet=buildWallet(`tr(${keys[0]},{pk(${keys[1]}),multi_a(2,${keys.join(',')})})`,{network:'mainnet'});
+    expect(walletDisplay(wallet,'de')).toEqual({addressFormat:'Taproot (P2TR)',signatureType:'Multi-Sig (2-von-3)'});
+  });
   it('fits a four-column, six-row address grid inside the retained sheet',()=>{expect(GEOMETRY.width).toBe(170);expect(GEOMETRY.height).toBe(200);expect(GEOMETRY.width).toBeLessThan(180);expect(GEOMETRY.height).toBeLessThan(210);expect(GEOMETRY.x*2+GEOMETRY.width).toBe(210);expect(GEOMETRY.columns).toBe(4);expect(GEOMETRY.rows).toBe(6);expect(GEOMETRY.addressStartX+(GEOMETRY.columns-1)*GEOMETRY.addressColumnGap+GEOMETRY.qrSize).toBeLessThanOrEqual(GEOMETRY.x+GEOMETRY.width);expect(GEOMETRY.addressStartY+(GEOMETRY.rows-1)*GEOMETRY.addressRowGap+GEOMETRY.qrSize).toBeLessThanOrEqual(GEOMETRY.y+GEOMETRY.height);expect(GEOMETRY.descriptorQrSize).toBeGreaterThan(40);});
   it.each(['en','de'] as const)('creates complete %s PDFs with 24 addresses and a recovery page',language=>{
     const wallet=buildWallet(XPUB);const pdf=generatePdf(wallet,'Grüße aus Köln','Öffentliche Daten',language);

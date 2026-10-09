@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.3 — 2026-10-09
+
+- Replaced the technical wallet-policy label in PDFs with a human-readable address format and signature type, including a clear M-of-N threshold when one multisig policy is present.
+
 ## 1.1.2 — 2026-10-08
 
 - Reflowed the 24-address sheet to four QR codes per row across six rows while keeping each address, index and verification checkbox with its QR.

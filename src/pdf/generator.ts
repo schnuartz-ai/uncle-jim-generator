@@ -7,6 +7,53 @@ import { messages, type Language } from '../i18n/messages';
 
 export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:15.5,columns:4,rows:6,addressStartX:25,addressStartY:85,addressColumnGap:40,addressRowGap:23,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
 export function createQr(value:string) {return QRCode.create(value,{errorCorrectionLevel:'M'});}
+const multisigFunctions=new Set(['multi','sortedmulti','multi_a','sortedmulti_a']);
+function closingParen(value:string,open:number):number {
+  let depth=0;
+  for(let i=open;i<value.length;i++) {
+    if(value[i]==='(')depth++;
+    else if(value[i]===')'&&--depth===0)return i;
+  }
+  return -1;
+}
+function splitArguments(value:string):string[] {
+  const result:string[]=[];let depth=0,start=0;
+  for(let i=0;i<value.length;i++) {
+    if(value[i]==='(')depth++;
+    else if(value[i]===')')depth--;
+    else if(value[i]===','&&depth===0){result.push(value.slice(start,i).trim());start=i+1;}
+  }
+  result.push(value.slice(start).trim());return result;
+}
+function findMultisigPolicies(descriptor:string):{found:boolean;thresholds:Set<string>} {
+  const body=descriptor.split('#',1)[0];const thresholds=new Set<string>();let found=false;
+  const calls=/([a-z][a-z0-9_]*)\s*\(/g;let match:RegExpExecArray|null;
+  while((match=calls.exec(body))) {
+    if(!multisigFunctions.has(match[1]))continue;
+    found=true;const open=match.index+match[0].lastIndexOf('(');const close=closingParen(body,open);
+    if(close<0)continue;
+    const args=splitArguments(body.slice(open+1,close));const m=Number(args[0]);const n=args.length-1;
+    if(Number.isSafeInteger(m)&&m>0&&n>=m)thresholds.add(`${m}:${n}`);
+  }
+  return {found,thresholds};
+}
+export function walletDisplay(wallet:WalletModel,language:Language):{addressFormat:string;signatureType:string} {
+  const t=messages[language],body=wallet.descriptor.split('#',1)[0];
+  let addressFormat:string;
+  if(body.startsWith('sh(wpkh('))addressFormat=t.nested;
+  else if(body.startsWith('sh(wsh('))addressFormat=t.nestedWsh;
+  else if(body.startsWith('sh('))addressFormat=t.legacyP2sh;
+  else if(body.startsWith('wpkh('))addressFormat=t.native;
+  else if(body.startsWith('wsh('))addressFormat=t.nativeWsh;
+  else if(body.startsWith('pkh('))addressFormat=t.legacy;
+  else if(body.startsWith('tr('))addressFormat=t.taproot;
+  else addressFormat=t.descriptorOutput;
+  const policy=findMultisigPolicies(body);
+  if(!policy.found)return {addressFormat,signatureType:t.singleSig};
+  if(policy.thresholds.size!==1)return {addressFormat,signatureType:t.multiSig};
+  const [m,n]=[...policy.thresholds][0].split(':');
+  return {addressFormat,signatureType:`${t.multiSig} (${m}-${t.sigOf}-${n})`};
+}
 function qr(doc:jsPDF,value:string,x:number,y:number,size:number,matrix=createQr(value).modules) {
   const unit=size/(matrix.size+8);
   doc.setFillColor(255,255,255);doc.rect(x,y,size,size,'F');doc.setFillColor(0,0,0);
@@ -40,8 +87,7 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
     doc.setDrawColor(31,153,229);doc.setLineWidth(.7);doc.line(x,y+3.2,x+width,y+3.2);
   };
   const wrap=(s:string,width:number,size:number):string[]=>{doc.setFont('Noto','normal');doc.setFontSize(size);return doc.splitTextToSize(s,width);};
-  const policy=wallet.scriptType.replace(/@\d+/g,'key');
-  const policyShort=policy.length>110?`${policy.slice(0,100)}…`:policy;
+  const display=walletDisplay(wallet,language);
   const network=wallet.network==='mainnet'?t.mainnet:wallet.network==='regtest'?t.regtest:t.testnet;
   const productBase=`https://clavastack.com${language==='de'?'/de':''}/products/`;
   const bags=productBase+'debasafetueten',stack=productBase+'backup-stack';
@@ -54,8 +100,8 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
     nameLines.forEach((line,i)=>text(line,26,40+i*5,12,true));
     let headerY=40+nameLines.length*5+1;
     text(network,26,headerY,7);headerY+=4.5;
-    const policyLines=wrap(`${t.walletType}: ${policyShort}`,104,6.2);
-    policyLines.forEach((line,i)=>text(line,26,headerY+i*3.1,6.2));headerY+=policyLines.length*3.1;
+    text(`${t.addressFormat}: ${display.addressFormat}`,26,headerY,6.2);headerY+=3.5;
+    text(`${t.signatureType}: ${display.signatureType}`,26,headerY,6.2);headerY+=3.5;
     if(description)text(t.descriptionOnRecovery,26,headerY+2,6.2);
     let descriptorMatrix;
     try {
@@ -109,7 +155,7 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
   const block=(heading:string,value:string)=>{paragraph(heading,9,true);paragraph(value,7.5);};
   block(t.name,name);if(description)block(t.description,description);
   paragraph(t.backupWarning,9,true);paragraph(t.security);
-  block(t.network,network);block(t.walletType,policy);
+  block(t.network,network);block(t.addressFormat,display.addressFormat);block(t.signatureType,display.signatureType);
   block(t.rangeLabel,wallet.ranged?`${wallet.addresses[0].index} - ${wallet.addresses.at(-1)!.index}`:t.fixed);
   if(wallet.assumedPath)paragraph(t.assumed);
   if(wallet.missingChecksum)paragraph(t.missing);
