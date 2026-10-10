@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.5 — 2026-10-10
+
+- Reflowed the default address grid to five columns across five rows (25 addresses) and split each complete address over two lines.
+
 ## 1.1.4 — 2026-10-10
 
 - Increased address QR codes, placed each Bitcoin address beneath its QR, and changed the default sheet to four columns across five rows (20 addresses).

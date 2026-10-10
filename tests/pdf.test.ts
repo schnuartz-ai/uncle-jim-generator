@@ -1,7 +1,7 @@
 import { describe,expect,it } from 'vitest';
 import jsQR from 'jsqr';
 import { buildWallet,WalletError } from '../src/bitcoin/engine';
-import { generatePdf,createQr,safeFilename,GEOMETRY,walletDisplay } from '../src/pdf/generator';
+import { generatePdf,createQr,safeFilename,GEOMETRY,walletDisplay,splitAddressText } from '../src/pdf/generator';
 const XPUB='xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ESFjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8';
 const PUBS=['0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798','02c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5','02f9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9'];
 describe('PDF output',()=>{
@@ -30,16 +30,23 @@ describe('PDF output',()=>{
     const wallet=buildWallet(`tr(${keys[0]},{pk(${keys[1]}),multi_a(2,${keys.join(',')})})`,{network:'mainnet'});
     expect(walletDisplay(wallet,'de')).toEqual({addressFormat:'Taproot (P2TR)',signatureType:'Multi-Sig (2-von-3)'});
   });
-  it('fits larger address QR codes and labels in a four-column, five-row sheet',()=>{
+  it('fits larger address QR codes and two-line labels in a five-column, five-row sheet',()=>{
     expect(GEOMETRY.width).toBe(170);expect(GEOMETRY.height).toBe(200);expect(GEOMETRY.width).toBeLessThan(180);expect(GEOMETRY.height).toBeLessThan(210);expect(GEOMETRY.x*2+GEOMETRY.width).toBe(210);
-    expect(GEOMETRY.columns).toBe(4);expect(GEOMETRY.rows).toBe(5);expect(GEOMETRY.qrSize).toBeGreaterThan(20);expect(GEOMETRY.addressTextOffset).toBeGreaterThan(GEOMETRY.addressIndexOffset);
-    expect(GEOMETRY.addressGridStartX+GEOMETRY.columns*GEOMETRY.addressColumnGap).toBeLessThanOrEqual(GEOMETRY.x+GEOMETRY.width-5);
-    expect(GEOMETRY.addressStartY+(GEOMETRY.rows-1)*GEOMETRY.addressRowGap+GEOMETRY.qrSize+GEOMETRY.addressTextOffset+GEOMETRY.addressTextLineGap).toBeLessThanOrEqual(GEOMETRY.y+GEOMETRY.height);
+    expect(GEOMETRY.columns).toBe(5);expect(GEOMETRY.rows).toBe(5);expect(GEOMETRY.qrSize).toBeGreaterThan(20);expect(GEOMETRY.addressTextLines).toBe(2);expect(GEOMETRY.addressTextOffset).toBeGreaterThan(GEOMETRY.addressIndexOffset);
+    expect(GEOMETRY.addressTextWidth).toBeLessThan(GEOMETRY.addressColumnGap);
+    expect(GEOMETRY.addressGridStartX+GEOMETRY.columns*GEOMETRY.addressColumnGap).toBeLessThanOrEqual(GEOMETRY.x+GEOMETRY.width);
+    expect(GEOMETRY.addressStartY+(GEOMETRY.rows-1)*GEOMETRY.addressRowGap+GEOMETRY.qrSize+GEOMETRY.addressTextOffset+(GEOMETRY.addressTextLines-1)*GEOMETRY.addressTextLineGap+GEOMETRY.addressTextSize*25.4/72).toBeLessThanOrEqual(GEOMETRY.y+GEOMETRY.height);
     expect(GEOMETRY.descriptorQrSize).toBeGreaterThan(40);
   });
-  it.each(['en','de'] as const)('creates complete %s PDFs with 20 addresses and a recovery page',language=>{
+  it('splits each complete address across exactly two balanced text lines',()=>{
+    for(const {address} of buildWallet(XPUB).addresses){
+      const lines=splitAddressText(address);
+      expect(lines).toHaveLength(2);expect(lines[0]+lines[1]).toBe(address);expect(Math.abs(lines[0].length-lines[1].length)).toBeLessThanOrEqual(1);
+    }
+  });
+  it.each(['en','de'] as const)('creates complete %s PDFs with 25 addresses and a recovery page',language=>{
     const wallet=buildWallet(XPUB);const pdf=generatePdf(wallet,'Grüße aus Köln','Öffentliche Daten',language);
-    expect(wallet.addresses).toHaveLength(20);
+    expect(wallet.addresses).toHaveLength(25);
     expect(pdf.getNumberOfPages()).toBe(2);expect(pdf.output('arraybuffer').byteLength).toBeGreaterThan(100000);
   });
   it('paginates 96 addresses and 1000 characters without discarding content',()=>{

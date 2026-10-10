@@ -5,7 +5,7 @@ import fonts from './font-data.json';
 import { WalletError, type WalletModel } from '../bitcoin/engine';
 import { messages, type Language } from '../i18n/messages';
 
-export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:20.5,columns:4,rows:5,addressGridStartX:25,addressStartY:85,addressColumnGap:40,addressRowGap:27,addressIndexOffset:1.5,addressTextOffset:4,addressTextWidth:39,addressTextSize:4.5,addressTextLineGap:2,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
+export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:20.5,columns:5,rows:5,addressGridStartX:20,addressStartY:83,addressColumnGap:34,addressRowGap:27,addressIndexOffset:1.5,addressTextOffset:4,addressTextWidth:32,addressTextSize:4.5,addressTextLineGap:2,addressTextLines:2,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
 export function createQr(value:string) {return QRCode.create(value,{errorCorrectionLevel:'M'});}
 const multisigFunctions=new Set(['multi','sortedmulti','multi_a','sortedmulti_a']);
 function closingParen(value:string,open:number):number {
@@ -70,6 +70,10 @@ function addFonts(doc:jsPDF) {
   doc.addFileToVFS('NotoSans-Bold.ttf',fonts.bold);doc.addFont('NotoSans-Bold.ttf','Noto','bold');doc.setFont('Noto','normal');
 }
 export function safeFilename(name:string) {return `uncle-jim-${name.normalize('NFKD').replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-|-$/g,'').slice(0,64)||'wallet'}.pdf`;}
+export function splitAddressText(address:string):[string,string] {
+  const midpoint=Math.ceil(address.length/2);
+  return [address.slice(0,midpoint),address.slice(midpoint)];
+}
 export function generatePdf(wallet:WalletModel,name:string,description:string,language:Language):jsPDF {
   if(!name.trim()||name.length>80||description.length>1000)throw new WalletError('size');
   const t=messages[language];
@@ -125,7 +129,10 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
       qr(doc,address.address,x,y,GEOMETRY.qrSize);
       doc.setDrawColor(30,30,30);doc.setLineWidth(.2);doc.rect(cellX+GEOMETRY.addressColumnGap-6,y+1,3,3);
       centeredText(address.index===null?'#1':`#${address.index}`,x+GEOMETRY.qrSize/2,y+GEOMETRY.qrSize+GEOMETRY.addressIndexOffset,4.1,true);
-      wrap(address.address,GEOMETRY.addressTextWidth,GEOMETRY.addressTextSize).forEach((line,j)=>centeredText(line,x+GEOMETRY.qrSize/2,y+GEOMETRY.qrSize+GEOMETRY.addressTextOffset+j*GEOMETRY.addressTextLineGap,GEOMETRY.addressTextSize));
+      const addressLines=splitAddressText(address.address);
+      doc.setFont('Noto','normal');doc.setFontSize(GEOMETRY.addressTextSize);
+      if(addressLines.some(line=>doc.getTextWidth(line)>GEOMETRY.addressTextWidth))throw new WalletError('size');
+      addressLines.forEach((line,j)=>centeredText(line,x+GEOMETRY.qrSize/2,y+GEOMETRY.qrSize+GEOMETRY.addressTextOffset+j*GEOMETRY.addressTextLineGap,GEOMETRY.addressTextSize));
     });
     text(t.print,20,14,6.5);
     doc.setDrawColor(110,120,130);doc.setLineDashPattern([1.5,1.5],0);doc.line(20,228,190,228);doc.setLineDashPattern([],0);
