@@ -86,7 +86,7 @@ function gatherKeys(map: Record<string,KeyInfo> | undefined, tree: TapTreeInfoNo
 }
 export function buildWallet(input: string, options: WalletOptions={}): WalletModel {
   preflight(input);
-  const start=options.start??1, count=options.count??24;
+  const start=options.start??1, count=options.count??20;
   if(!Number.isSafeInteger(start)||start<0||start>2147483647||!Number.isSafeInteger(count)||count<1||count>96||start+count-1>2147483647) throw new WalletError('range');
   try {
     const checked=checkedBody(input);

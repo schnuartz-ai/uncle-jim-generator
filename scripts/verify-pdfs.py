@@ -5,6 +5,15 @@ import pypdfium2 as pdfium
 from pypdf import PdfReader
 import pdfplumber
 
+GRID_COLUMNS = 4
+GRID_ROWS = 5
+GRID_CAPACITY = GRID_COLUMNS * GRID_ROWS
+GRID_START_X_MM = 25
+GRID_START_Y_MM = 85
+CELL_WIDTH_MM = 40
+ROW_GAP_MM = 27
+QR_SIZE_MM = 20.5
+
 out = Path('output/qa')
 out.mkdir(parents=True, exist_ok=True)
 report = []
@@ -33,7 +42,7 @@ for file in sorted(Path('output/pdf').glob('*.pdf')):
             for char in page.chars:
                 assert char['x0'] >= 0 and char['x1'] <= page.width + .1, (file, char['text'], 'horizontal overflow')
                 assert char['top'] >= 0 and char['bottom'] <= page.height, (file, char['text'], 'vertical overflow')
-            if page_index < (len(wallet['addresses'])+23)//24:
+            if page_index < (len(wallet['addresses'])+GRID_CAPACITY-1)//GRID_CAPACITY:
                 rectangles = [r for r in page.rects if abs(r['width']*25.4/72-170)<.05 and abs(r['height']*25.4/72-200)<.05]
                 assert rectangles, (file, 'missing exact 170 x 200 cut outline')
                 blue_lines = [line for line in page.lines if line['stroking_color'] and len(line['stroking_color']) >= 3 and line['stroking_color'][:3] == (0.12, 0.6, 0.9) and abs(line['top']-line['bottom']) < .1]
@@ -50,13 +59,13 @@ for file in sorted(Path('output/pdf').glob('*.pdf')):
     mm = 300/25.4
     pages = {}
     for i, address in enumerate(wallet['addresses']):
-        p = i//24
+        p = i//GRID_CAPACITY
         if p not in pages:
             pages[p]=rendered[p].render(scale=scale).to_pil().convert('RGBA')
-        local = i%24
-        x=(25+(local%4)*40)*mm
-        y=(85+(local//4)*23)*mm
-        crop=pages[p].crop((round(x),round(y),round(x+15.5*mm),round(y+15.5*mm)))
+        local = i%GRID_CAPACITY
+        x=(GRID_START_X_MM+(local%GRID_COLUMNS)*CELL_WIDTH_MM+(CELL_WIDTH_MM-QR_SIZE_MM)/2)*mm
+        y=(GRID_START_Y_MM+(local//GRID_COLUMNS)*ROW_GAP_MM)*mm
+        crop=pages[p].crop((round(x),round(y),round(x+QR_SIZE_MM*mm),round(y+QR_SIZE_MM*mm)))
         raw=target/f'qr-{i}.rgba'
         raw.write_bytes(crop.tobytes())
         qrs.append({'file':str(raw),'width':crop.width,'height':crop.height,'expected':address['address']})

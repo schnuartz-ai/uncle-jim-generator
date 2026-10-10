@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.4 — 2026-10-10
+
+- Increased address QR codes, placed each Bitcoin address beneath its QR, and changed the default sheet to four columns across five rows (20 addresses).
+
 ## 1.1.3 — 2026-10-09
 
 - Replaced the technical wallet-policy label in PDFs with a human-readable address format and signature type, including a clear M-of-N threshold when one multisig policy is present.

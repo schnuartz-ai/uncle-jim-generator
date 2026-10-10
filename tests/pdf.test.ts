@@ -30,9 +30,16 @@ describe('PDF output',()=>{
     const wallet=buildWallet(`tr(${keys[0]},{pk(${keys[1]}),multi_a(2,${keys.join(',')})})`,{network:'mainnet'});
     expect(walletDisplay(wallet,'de')).toEqual({addressFormat:'Taproot (P2TR)',signatureType:'Multi-Sig (2-von-3)'});
   });
-  it('fits a four-column, six-row address grid inside the retained sheet',()=>{expect(GEOMETRY.width).toBe(170);expect(GEOMETRY.height).toBe(200);expect(GEOMETRY.width).toBeLessThan(180);expect(GEOMETRY.height).toBeLessThan(210);expect(GEOMETRY.x*2+GEOMETRY.width).toBe(210);expect(GEOMETRY.columns).toBe(4);expect(GEOMETRY.rows).toBe(6);expect(GEOMETRY.addressStartX+(GEOMETRY.columns-1)*GEOMETRY.addressColumnGap+GEOMETRY.qrSize).toBeLessThanOrEqual(GEOMETRY.x+GEOMETRY.width);expect(GEOMETRY.addressStartY+(GEOMETRY.rows-1)*GEOMETRY.addressRowGap+GEOMETRY.qrSize).toBeLessThanOrEqual(GEOMETRY.y+GEOMETRY.height);expect(GEOMETRY.descriptorQrSize).toBeGreaterThan(40);});
-  it.each(['en','de'] as const)('creates complete %s PDFs with 24 addresses and a recovery page',language=>{
+  it('fits larger address QR codes and labels in a four-column, five-row sheet',()=>{
+    expect(GEOMETRY.width).toBe(170);expect(GEOMETRY.height).toBe(200);expect(GEOMETRY.width).toBeLessThan(180);expect(GEOMETRY.height).toBeLessThan(210);expect(GEOMETRY.x*2+GEOMETRY.width).toBe(210);
+    expect(GEOMETRY.columns).toBe(4);expect(GEOMETRY.rows).toBe(5);expect(GEOMETRY.qrSize).toBeGreaterThan(20);expect(GEOMETRY.addressTextOffset).toBeGreaterThan(GEOMETRY.addressIndexOffset);
+    expect(GEOMETRY.addressGridStartX+GEOMETRY.columns*GEOMETRY.addressColumnGap).toBeLessThanOrEqual(GEOMETRY.x+GEOMETRY.width-5);
+    expect(GEOMETRY.addressStartY+(GEOMETRY.rows-1)*GEOMETRY.addressRowGap+GEOMETRY.qrSize+GEOMETRY.addressTextOffset+GEOMETRY.addressTextLineGap).toBeLessThanOrEqual(GEOMETRY.y+GEOMETRY.height);
+    expect(GEOMETRY.descriptorQrSize).toBeGreaterThan(40);
+  });
+  it.each(['en','de'] as const)('creates complete %s PDFs with 20 addresses and a recovery page',language=>{
     const wallet=buildWallet(XPUB);const pdf=generatePdf(wallet,'Grüße aus Köln','Öffentliche Daten',language);
+    expect(wallet.addresses).toHaveLength(20);
     expect(pdf.getNumberOfPages()).toBe(2);expect(pdf.output('arraybuffer').byteLength).toBeGreaterThan(100000);
   });
   it('paginates 96 addresses and 1000 characters without discarding content',()=>{

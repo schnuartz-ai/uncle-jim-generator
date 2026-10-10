@@ -22,7 +22,7 @@ describe('official BIP32 and BIP86 reference vectors',()=>{
   it('imports official BIP32 vector 1 and matches all 24 receive scripts against scure',()=>{
     const publicNode=HDKey.fromExtendedKey(XPUB);
     expect(publicNode.publicKey).toEqual(HDKey.fromMasterSeed(fromHex('000102030405060708090a0b0c0d0e0f')).publicKey);
-    const wallet=buildWallet(XPUB);
+    const wallet=buildWallet(XPUB,{count:24});
     expect(wallet.addresses.map(a=>a.index)).toEqual(Array.from({length:24},(_,i)=>i+1));
     wallet.addresses.forEach((a,i)=>{const reference=btc.p2wpkh(publicNode.derive(`m/0/${i+1}`).publicKey!);expect(a.address).toBe(reference.address);expect(a.scriptPubKey).toBe(toHex(reference.script));});
   });

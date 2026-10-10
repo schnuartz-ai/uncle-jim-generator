@@ -28,7 +28,7 @@ An XPub is an extended **public** key: it can reveal receiving addresses and tra
 | Compatible `wsh()` Miniscript | Supported by pinned parser/compiler, context validation; timelocked reference tested |
 | `tr(KEY,TREE)` | Supported compatible Tapscript trees; `pk`, `multi_a`, `sortedmulti_a` independently tested |
 | `/<0;1>/*`, `/**` multipath | External branch 0; exact multipath recovery text retained |
-| Fixed output | One output; never invents 24 distinct addresses |
+| Fixed output | One output; never invents an address sequence |
 | `xpub`, `tpub` | Supported, network-family inference |
 | `ypub/zpub/upub/vpub` | Supported SLIP-132 single-sig conventions |
 | `Ypub/Zpub/Upub/Vpub` | Only in a matching complete multisig descriptor |
@@ -42,7 +42,7 @@ Mainnet and the common test-network family are inferred from extended-key serial
 
 ## PDF and printing
 
-The default is A4 portrait with indices **1–24**, three columns and eight rows. A large QR in the upper-right corner contains the checksummed receive descriptor and is labelled **Watch-Only**. Advanced settings permit index 0 and up to 96 addresses, with additional address pages. Every QR contains its exact address or descriptor and has a quiet zone. Verification boxes start empty.
+The default is A4 portrait with indices **1–20**, four columns and five rows. Address QRs are **20.5 mm** wide, with each exact address printed directly below its QR. A large QR in the upper-right corner contains the checksummed receive descriptor and is labelled **Watch-Only**. Advanced settings permit index 0 and up to 96 addresses, with additional address pages. Every QR contains its exact address or descriptor and has a quiet zone. Verification boxes start empty.
 
 Print at **100% / actual size**, then trim **all four dotted edges** around the retained **170 × 200 mm** sheet. Removing only the bottom strip leaves A4 too wide. This provides 10 mm dimensional clearance in a published 180 × 210 mm Debasafe bag. PDFs have been rendered and measured; physical printer scaling still depends on your print settings.
 
