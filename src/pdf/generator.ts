@@ -5,7 +5,7 @@ import fonts from './font-data.json';
 import { WalletError, type WalletModel } from '../bitcoin/engine';
 import { messages, type Language } from '../i18n/messages';
 
-export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:20.5,columns:5,rows:5,addressGridStartX:20,addressStartY:83,addressColumnGap:34,addressRowGap:27,addressIndexOffset:1.5,addressTextOffset:4,addressTextWidth:32,addressTextSize:4.5,addressTextLineGap:2,addressTextLines:2,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
+export const GEOMETRY={pageWidth:210,pageHeight:297,x:20,y:20,width:170,height:200,qrSize:20.5,columns:6,rows:5,addressGridStartX:20.4,addressStartY:83,addressColumnGap:28.2,addressRowGap:27,addressIndexOffset:1.5,addressTextOffset:4,addressTextWidth:28,addressTextSize:4.3,addressTextLineGap:2,addressTextLines:2,checkboxOffset:.4,descriptorQrX:136,descriptorQrY:23,descriptorQrSize:48};
 export function createQr(value:string) {return QRCode.create(value,{errorCorrectionLevel:'M'});}
 const multisigFunctions=new Set(['multi','sortedmulti','multi_a','sortedmulti_a']);
 function closingParen(value:string,open:number):number {
@@ -127,7 +127,7 @@ export function generatePdf(wallet:WalletModel,name:string,description:string,la
       const x=cellX+(GEOMETRY.addressColumnGap-GEOMETRY.qrSize)/2;
       const y=GEOMETRY.addressStartY+row*GEOMETRY.addressRowGap;
       qr(doc,address.address,x,y,GEOMETRY.qrSize);
-      doc.setDrawColor(30,30,30);doc.setLineWidth(.2);doc.rect(cellX+GEOMETRY.addressColumnGap-6,y+1,3,3);
+      doc.setDrawColor(30,30,30);doc.setLineWidth(.2);doc.rect(cellX+GEOMETRY.checkboxOffset,y+1,3,3);
       centeredText(address.index===null?'#1':`#${address.index}`,x+GEOMETRY.qrSize/2,y+GEOMETRY.qrSize+GEOMETRY.addressIndexOffset,4.1,true);
       const addressLines=splitAddressText(address.address);
       doc.setFont('Noto','normal');doc.setFontSize(GEOMETRY.addressTextSize);

@@ -30,11 +30,12 @@ describe('PDF output',()=>{
     const wallet=buildWallet(`tr(${keys[0]},{pk(${keys[1]}),multi_a(2,${keys.join(',')})})`,{network:'mainnet'});
     expect(walletDisplay(wallet,'de')).toEqual({addressFormat:'Taproot (P2TR)',signatureType:'Multi-Sig (2-von-3)'});
   });
-  it('fits larger address QR codes and two-line labels in a five-column, five-row sheet',()=>{
+  it('fits unchanged address QR codes and two-line labels in a six-column, five-row sheet',()=>{
     expect(GEOMETRY.width).toBe(170);expect(GEOMETRY.height).toBe(200);expect(GEOMETRY.width).toBeLessThan(180);expect(GEOMETRY.height).toBeLessThan(210);expect(GEOMETRY.x*2+GEOMETRY.width).toBe(210);
-    expect(GEOMETRY.columns).toBe(5);expect(GEOMETRY.rows).toBe(5);expect(GEOMETRY.qrSize).toBeGreaterThan(20);expect(GEOMETRY.addressTextLines).toBe(2);expect(GEOMETRY.addressTextOffset).toBeGreaterThan(GEOMETRY.addressIndexOffset);
+    expect(GEOMETRY.columns).toBe(6);expect(GEOMETRY.rows).toBe(5);expect(GEOMETRY.qrSize).toBe(20.5);expect(GEOMETRY.addressTextLines).toBe(2);expect(GEOMETRY.addressTextOffset).toBeGreaterThan(GEOMETRY.addressIndexOffset);
     expect(GEOMETRY.addressTextWidth).toBeLessThan(GEOMETRY.addressColumnGap);
     expect(GEOMETRY.addressGridStartX+GEOMETRY.columns*GEOMETRY.addressColumnGap).toBeLessThanOrEqual(GEOMETRY.x+GEOMETRY.width);
+    expect(GEOMETRY.checkboxOffset+3).toBeLessThan((GEOMETRY.addressColumnGap-GEOMETRY.qrSize)/2);
     expect(GEOMETRY.addressStartY+(GEOMETRY.rows-1)*GEOMETRY.addressRowGap+GEOMETRY.qrSize+GEOMETRY.addressTextOffset+(GEOMETRY.addressTextLines-1)*GEOMETRY.addressTextLineGap+GEOMETRY.addressTextSize*25.4/72).toBeLessThanOrEqual(GEOMETRY.y+GEOMETRY.height);
     expect(GEOMETRY.descriptorQrSize).toBeGreaterThan(40);
   });
@@ -44,9 +45,9 @@ describe('PDF output',()=>{
       expect(lines).toHaveLength(2);expect(lines[0]+lines[1]).toBe(address);expect(Math.abs(lines[0].length-lines[1].length)).toBeLessThanOrEqual(1);
     }
   });
-  it.each(['en','de'] as const)('creates complete %s PDFs with 25 addresses and a recovery page',language=>{
+  it.each(['en','de'] as const)('creates complete %s PDFs with 30 addresses and a recovery page',language=>{
     const wallet=buildWallet(XPUB);const pdf=generatePdf(wallet,'Grüße aus Köln','Öffentliche Daten',language);
-    expect(wallet.addresses).toHaveLength(25);
+    expect(wallet.addresses).toHaveLength(30);
     expect(pdf.getNumberOfPages()).toBe(2);expect(pdf.output('arraybuffer').byteLength).toBeGreaterThan(100000);
   });
   it('paginates 96 addresses and 1000 characters without discarding content',()=>{

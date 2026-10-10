@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.6 — 2026-10-10
+
+- Tightened the five-row address grid to six columns (30 default addresses) while keeping each address QR at 20.5 mm; moved verification boxes into the left cell margin.
+
 ## 1.1.5 — 2026-10-10
 
 - Reflowed the default address grid to five columns across five rows (25 addresses) and split each complete address over two lines.

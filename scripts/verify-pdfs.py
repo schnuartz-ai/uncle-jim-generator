@@ -5,12 +5,12 @@ import pypdfium2 as pdfium
 from pypdf import PdfReader
 import pdfplumber
 
-GRID_COLUMNS = 5
+GRID_COLUMNS = 6
 GRID_ROWS = 5
 GRID_CAPACITY = GRID_COLUMNS * GRID_ROWS
-GRID_START_X_MM = 20
+GRID_START_X_MM = 20.4
 GRID_START_Y_MM = 83
-CELL_WIDTH_MM = 34
+CELL_WIDTH_MM = 28.2
 ROW_GAP_MM = 27
 QR_SIZE_MM = 20.5
 

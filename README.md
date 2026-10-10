@@ -42,7 +42,7 @@ Mainnet and the common test-network family are inferred from extended-key serial
 
 ## PDF and printing
 
-The default is A4 portrait with indices **1–25**, five columns and five rows. Address QRs are **20.5 mm** wide, with each exact address printed directly below its QR on two balanced lines. A large QR in the upper-right corner contains the checksummed receive descriptor and is labelled **Watch-Only**. Advanced settings permit index 0 and up to 96 addresses, with additional address pages. Every QR contains its exact address or descriptor and has a quiet zone. Verification boxes start empty.
+The default is A4 portrait with indices **1–30**, six closely spaced columns and five rows. Address QRs remain **20.5 mm** wide, with each exact address printed directly below its QR on two balanced lines. A large QR in the upper-right corner contains the checksummed receive descriptor and is labelled **Watch-Only**. Advanced settings permit index 0 and up to 96 addresses, with additional address pages. Every QR contains its exact address or descriptor and has a quiet zone. Verification boxes start empty.
 
 Print at **100% / actual size**, then trim **all four dotted edges** around the retained **170 × 200 mm** sheet. Removing only the bottom strip leaves A4 too wide. This provides 10 mm dimensional clearance in a published 180 × 210 mm Debasafe bag. PDFs have been rendered and measured; physical printer scaling still depends on your print settings.
 
